@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="95%"
+			   title="Add Customer"
+			   creationComplete="_init()"
+			   close="_onAddCustomerWindowClose(event)"
+			   keyDown="_onKeyDownHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.events.ValidationResultEvent;
+			import mx.managers.PopUpManager;
+			import mx.validators.Validator;
+			
+			import spark.events.TextOperationEvent;
+			import spark.primitives.supportClasses.FilledElement;
+			
+			import stackbaek.ubcmt.events.CustomerModelEvent;
+			import stackbaek.ubcmt.models.CustomerModel;
+			import stackbaek.ubcmt.models.vos.CustomerVO;
+			import stackbaek.ubcmt.models.vos.NoteVO;
+			
+			private const DEFAULT_FIRST_NAME:String = "ex) John";
+			private const DEFAULT_LAST_NAME:String = "ex) Smith";
+			private const DEFAULT_COMPANY_NAME:String = "ex) Their Company";
+			private const DEFAULT_PHONE:String = "ex) 1234567890";
+			private const DEFAULT_EMAIL:String = "ex) john.smith@gmail.com";
+			private const DEFAULT_NOTE:String = "ENTER NOTES (MAX 500 CHARS)";
+			
+			[Bindable]
+			private var usStates:ArrayCollection = new ArrayCollection(["AK", "AL", "AR", "AZ", "CA", "CO", 
+				"CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY", 
+				"LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", 
+				"NH", "NJ", "NM", "NV", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", 
+				"TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY"]);
+			
+			private var allReqFilledIn:Boolean;
+			
+			private var validators:Array;
+			
+			// ------- Event Handlers -------
+			protected function _onAddCustomerWindowClose(event:CloseEvent):void
+			{
+				_closePopup();
+			}
+			
+			protected function _onAddCustomer(event:MouseEvent):void
+			{
+				allReqFilledIn = true;
+				for each(var validator:Validator in validators)
+				{
+					validator.validate();
+				}
+				
+				if(allReqFilledIn)
+				{
+					//now parse customerVO
+						var customer:CustomerVO = new CustomerVO;
+					customer.firstName = firstName.text;
+					customer.lastName = lastName.text;
+					customer.companyName = companyName.text;
+					customer.physicalAddressStreet = physicalAddressStreet1.text + " " + physicalAddressStreet2.text;
+					customer.physicalAddressCity = physicalAddressCity.text;
+					customer.physicalAddressState = (physicalAddressState.selectedItem)?physicalAddressState.selectedItem:"";
+					customer.physicalAddressZip = physicalAddressZip.text;
+					customer.billingAddressStreet = billingAddressStreet1.text + " " + billingAddressStreet2.text;
+					customer.billingAddressCity = billingAddressCity.text;
+					customer.billingAddressState = (billingAddressState.selectedItem)?billingAddressState.selectedItem:"";
+					customer.billingAddressZip = billingAddressZip.text;
+					customer.contactPhone = contactPhone.text;
+					if(contactPhone.text!= null && contactPhone.text.length == 10)
+					{
+						customer.contactPhone = phoneFormatter.format(contactPhone.text);
+						trace("RE-FORMATTING CONTACT NUM - THIS SHOULD NOT HAPPEN BTW");
+					}
+					customer.workPhone = workPhone.text;
+					if(workPhone.text!= null && workPhone.text.length == 10)
+					{
+						customer.workPhone = phoneFormatter.format(workPhone.text);
+						trace("RE-FORMATTING WORK NUM - THIS SHOULD NOT HAPPEN BTW");
+					}
+					customer.email = email.text;
+					customer.machineModelNum = machineModelNum.text;
+					customer.machineSerialNum = machineSerialNum.text;
+					customer.note = notes.text;
+					
+					//now dispatch event - add customer
+					dispatchEvent(new CustomerModelEvent(CustomerModelEvent.ADD_CUSTOMER, customer));
+					_closePopup();	
+				}
+			}
+			
+			
+			protected function _onCancelAddCustomer(event:MouseEvent):void
+			{
+				_closePopup();
+			}
+			
+			protected function _onPhoneFocusOut(event:FocusEvent):void
+			{
+				var currentTarget:TextInput = event.currentTarget as TextInput;
+				var formattedNum:String = phoneFormatter.format(currentTarget.text);
+				if(formattedNum != "")
+				{
+					currentTarget.text = formattedNum;
+				}
+			}
+			
+			protected function custInfoValidator_validHandler(event:ValidationResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				trace("valid");
+			}
+			
+			protected function custInfoValidator_invalidHandler(event:ValidationResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				trace(event.currentTarget, "invalid");
+				allReqFilledIn=false;
+			}
+			
+			// ------- Private Methods -------
+			private function _init():void
+			{
+					validators = new Array;
+					validators.push(firstNameValidator);
+					validators.push(lastNameValidator);
+					validators.push(contactPhoneNumberValidator);
+			}
+			
+			private function _closePopup():void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function _copyPhysicalIntoBilling():void
+			{
+				if(cpyPhysicalChkbox.selected)
+				{
+					billingAddressStreet1.text = physicalAddressStreet1.text;
+					billingAddressStreet2.text = physicalAddressStreet2.text;
+					billingAddressCity.text = physicalAddressCity.text;
+					billingAddressState.selectedIndex = physicalAddressState.selectedIndex;
+					billingAddressZip.text = physicalAddressZip.text;
+				}
+			}
+			
+			protected function _onKeyDownHandler(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ESCAPE)
+				{
+					_closePopup();
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+
+		<mx:PhoneFormatter id="phoneFormatter" formatString="(###) ###-####" validPatternChars=" #-()"/>
+		
+		<!--<mx:EmailValidator id="emailValidator" source="{email}" property="text"/>-->
+		
+		<mx:StringValidator id="firstNameValidator" 
+							source="{firstName}" property="text"
+							minLength="1" 
+							tooShortError="First Name Required"
+							invalid="custInfoValidator_invalidHandler(event)"/>
+		<mx:StringValidator id="lastNameValidator" 
+							source="{lastName}" property="text"
+							minLength="1" 
+							tooShortError="Last Name Required"
+							invalid="custInfoValidator_invalidHandler(event)"/>
+		<mx:PhoneNumberValidator id="contactPhoneNumberValidator"
+								 source="{contactPhone}" property="text"
+								 allowedFormatChars=" #-()"
+								 minDigits="10"
+								 invalid="custInfoValidator_invalidHandler(event)"/>
+
+		
+		
+	</fx:Declarations>
+	<s:VGroup gap="-5" width="100%">
+		<s:Form id="custInfoForm"  width="100%" height="100%" defaultButton="{submitBtn}">
+			<s:layout>
+				<s:FormLayout horizontalAlign="justify" gap="-10"/>
+			</s:layout>
+			<s:FormHeading label="Enter Customer Info"/>
+			<s:FormItem label="First Name" width="100%" required="true">
+				<s:TextInput id="firstName" width="100%" autoCapitalize="word" toolTip="Enter the customer's first name" prompt="{DEFAULT_FIRST_NAME}" />
+			</s:FormItem>	
+			<s:FormItem label="Last Name" width="100%" required="true">
+				<s:TextInput id="lastName" width="100%" autoCapitalize="word" toolTip="Enter the customer's last name" prompt="{DEFAULT_LAST_NAME}" />
+			</s:FormItem>	
+			<s:FormItem label="Company Name" width="100%" required="false">
+				<s:TextInput id="companyName" width="100%" toolTip="Enter the customer's company" prompt="{DEFAULT_COMPANY_NAME}" />
+			</s:FormItem>	
+			<s:FormItem label="Contact Phone" width="100%" required="true">
+				<s:TextInput id="contactPhone" width="100%" prompt="{DEFAULT_PHONE}" toolTip="Enter the customer's contact number"  focusOut="_onPhoneFocusOut(event)"/>
+			</s:FormItem>	
+			<s:FormItem label="Work Phone" width="100%" required="false">
+				<s:TextInput id="workPhone" width="100%" prompt="{DEFAULT_PHONE}" toolTip="Enter the customer's work number"  focusOut="_onPhoneFocusOut(event)"/>
+			</s:FormItem>	
+			<s:FormItem label="Email" width="100%" required="false">
+				<s:TextInput id="email" width="100%" prompt="{DEFAULT_EMAIL}" toolTip="Enter the customer's email" />
+			</s:FormItem>
+			<s:FormItem label="Physical Address" width="100%">
+				<s:TextInput id="physicalAddressStreet1" width="100%" toolTip="Enter the customer's street address1"/>
+				<s:TextInput id="physicalAddressStreet2" width="100%" toolTip="Enter the customer's street address2"/>
+				<s:HGroup verticalAlign="middle">
+					<s:Label text="city"/>
+					<s:TextInput id="physicalAddressCity" width="80" toolTip="Enter the customer's city"/>
+					<s:Label text="state"/>
+					<s:ComboBox id="physicalAddressState" width="50" 
+								selectedIndex="-1"
+								dataProvider="{usStates}"/>
+					<s:Label text="zip"/>
+					 <s:TextInput id="physicalAddressZip" width="60" toolTip="Enter the customer's zip code (5digits)"
+								  maxChars="11" restrict="0-9"/>
+				</s:HGroup>
+			</s:FormItem>	
+
+			<s:FormItem label="Billing Address" width="100%">
+				<s:CheckBox id="cpyPhysicalChkbox" label="same as physical address" change="_copyPhysicalIntoBilling()"/>
+				<s:TextInput id="billingAddressStreet1" width="100%" toolTip="Enter the customer's street address1"/>
+				<s:TextInput id="billingAddressStreet2" width="100%" toolTip="Enter the customer's street address2"/>
+				<s:HGroup verticalAlign="middle">
+					<s:Label text="city"/>
+					<s:TextInput id="billingAddressCity" width="80" toolTip="Enter the customer's city"/>
+					<s:Label text="state"/>
+					<s:ComboBox id="billingAddressState" width="50" 
+								selectedIndex="-1"
+								dataProvider="{usStates}"/>
+					<s:Label text="zip"/>
+					 <s:TextInput id="billingAddressZip" width="60" toolTip="Enter the customer's zip code (5digits)"
+								  maxChars="11" restrict="0-9"/>
+				</s:HGroup>
+			</s:FormItem>	
+			
+			<s:FormItem label="Machine Model#" width="100%" required="false">
+				<s:TextInput id="machineModelNum" toolTip="Enter the Model #. ex) WIM-310"/>
+			</s:FormItem>	
+			<s:FormItem label="Machine Serial#" width="100%" required="false">
+				<s:TextInput id="machineSerialNum" toolTip="Enter the Serial #. ex) LD/FO1430005200/0044"/>
+			</s:FormItem>	
+			<s:FormItem label="Comments" width="100%" required="false">
+				<s:TextArea id="notes" toolTip="Enter notes for this customer" prompt="{DEFAULT_NOTE}" maxChars="500" />
+			</s:FormItem>	
+				
+			<s:HGroup verticalAlign="middle" horizontalAlign="center" paddingTop="10">
+				<s:Button id="submitBtn" label="ADD" click="_onAddCustomer(event)"/>
+				<s:Button id="cancelBtn" label="CANCEL" click="_onCancelAddCustomer(event)"/>
+			</s:HGroup>
+		</s:Form>
+	
+	</s:VGroup>
+	
+	
+	
+</s:TitleWindow>

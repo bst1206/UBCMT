@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+			   title="Customer Detail"
+			   close="_onCustomerDetailWindowClose(event)"
+			   keyDown="_onKeyDownHandler(event)" xmlns:views="stackbaek.ubcmt.views.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import stackbaek.ubcmt.models.vos.CustomerVO;
+			
+			private var _customer:CustomerVO;
+			public function set customer(customer:CustomerVO):void
+			{
+				_customer = customer;
+				if(_customer)
+				{
+					title = _customer.firstName + " " + _customer.lastName + "'s Information";
+				}
+			}
+			
+			protected function _onCustomerDetailWindowClose(event:CloseEvent):void
+			{
+				_closePopup();
+			}
+			
+			protected function closeBtn_clickHandler(event:MouseEvent):void
+			{
+				_closePopup();
+			}
+
+			// ------- private functions -------
+			private function _closePopup():void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			
+			protected function _onKeyDownHandler(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ESCAPE)
+				{
+					_closePopup();
+				}
+			}
+			
+			protected function editBtn_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+
+	<s:VGroup width="100%" height="100%" horizontalAlign="center">
+		<views:TitledButton title="FirstName" label="test"/>
+		<s:HGroup>
+			<s:Button id="closeBtn" label="close" click="closeBtn_clickHandler(event)"/>
+			<s:Button id="editBtn" label="edit" click="editBtn_clickHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>  
+	
+	
+	
+</s:TitleWindow>

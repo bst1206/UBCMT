@@ -1,0 +1,21 @@
+INSERT INTO CUSTOMER_TABLE
+(
+	firstname, 
+	lastname,
+	companyName,
+	physicalAddrStreet,
+	physicalAddrCity,
+	physicalAddrState,
+	physicalAddrZip,
+	billingAddrStreet,
+	billingAddrCity,
+	billingAddrState,
+	billingAddrZip,
+	contactPhone,
+	workPhone,
+	email,
+	machineModelNum,
+	machineSerialNum,
+	lastUpdated,
+	notes
+)

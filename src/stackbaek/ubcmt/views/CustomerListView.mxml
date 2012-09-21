@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:components="stackbaek.ubcmt.views.components.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			
+			import stackbaek.ubcmt.events.CustomerModelEvent;
+			import stackbaek.ubcmt.models.vos.CustomerVO;
+			import stackbaek.ubcmt.views.components.AddCustomerWindow;
+			import stackbaek.util.ObjectParser;
+			
+			// ------ event handlers -------
+
+			protected function _onAddCustomerBtnClicked(event:MouseEvent):void
+			{
+				addCustomerWindow = PopUpManager.createPopUp(this, AddCustomerWindow, true) as AddCustomerWindow;
+				addCustomerWindow.addEventListener(CustomerModelEvent.ADD_CUSTOMER, _onAddCustomer);
+				PopUpManager.centerPopUp(addCustomerWindow);
+//				PopUpManager.addPopUp();
+			}
+			
+			private function _onAddCustomer(event:CustomerModelEvent):void
+			{
+				addCustomerWindow.removeEventListener(CustomerModelEvent.ADD_CUSTOMER, _onAddCustomer);
+				dispatchEvent(event);
+			}
+			
+			protected function _onCustomerSelected(event:ListEvent):void
+			{
+				customerDetailWindow = PopUpManager.createPopUp(this, CustomerDetailWindow, true) as CustomerDetailWindow;
+				customerDetailWindow.customer = ObjectParser.toCustomerVO((event.currentTarget as DataGrid).selectedItem);
+				PopUpManager.centerPopUp(customerDetailWindow);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<components:AddCustomerWindow id="addCustomerWindow"/>
+		<components:CustomerDetailWindow id="customerDetailWindow"/>
+	</fx:Declarations>
+	
+	<s:Button label="Add" y="10" x="394" click="_onAddCustomerBtnClicked(event)"/>
+	<s:Button label="Search" y="10" x="477" enabled="{dg.selectedIndex != -1}"/>
+	<s:Button label="Remove selected" y="10" x="602" enabled="{dg.selectedIndex != -1}"/>
+	
+	<s:Label x="10" y="20" text="First name:"/>
+	<s:Label x="202" y="20" text="Last name:"/>
+	<s:TextInput x="77" y="10" width="117" id="first_name"/>
+	<s:TextInput x="268" y="10" width="117" id="last_name"/>
+
+	<mx:DataGrid id="dg" left="5" right="5" top="40" bottom="5" width="100%" itemClick="_onCustomerSelected(event)">
+		<mx:columns>
+			<mx:DataGridColumn headerText="First name" dataField="firstname" width="90"/>
+			<mx:DataGridColumn headerText="Last name" dataField="lastname" width="90"/>
+			<mx:DataGridColumn headerText="Company name" dataField="companyName" width="100"/>
+			<mx:DataGridColumn headerText="Email" dataField="email" width="100"/>
+			<mx:DataGridColumn headerText="Contact Phone" dataField="contactPhone" width="120"/>
+			<mx:DataGridColumn headerText="Work Phone" dataField="workPhone" width="120"/>
+			<mx:DataGridColumn headerText="Physical Street" dataField="physicalAddrStreet" width="200"/>
+			<mx:DataGridColumn headerText="City" dataField="physicalAddrCity" width="50"/>
+			<mx:DataGridColumn headerText="State" dataField="physicalAddrState" width="50"/>
+			<mx:DataGridColumn headerText="Zip" dataField="physicalAddrZip" width="50"/>
+		</mx:columns>
+<!--			<mx:DataGridColumnGroup headerText="Billing Address">
+				<mx:DataGridColumn headerText="Street" dataField="billingAddrStreet"/>
+				<mx:DataGridColumn headerText="City" dataField="billingAddrCity"/>
+				<mx:DataGridColumn headerText="State" dataField="billingAddrState"/>
+				<mx:DataGridColumn headerText="Zip" dataField="billingAddrZip"/>
+			</mx:DataGridColumnGroup>
+			<mx:DataGridColumn headerText="Machine model#" dataField="machineModelNum"/>
+			<mx:DataGridColumn headerText="Machine serial#" dataField="machineModelNum"/>
+			<mx:DataGridColumn headerText="Last Updated" dataField="lastUpdated"/>
+			<mx:DataGridColumn headerText="Notes" dataField="Notes.text"/>-->
+	</mx:DataGrid>	
+	
+</mx:Canvas>
